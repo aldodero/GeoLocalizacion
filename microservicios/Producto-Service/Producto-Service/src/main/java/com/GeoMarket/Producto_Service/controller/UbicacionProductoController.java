@@ -3,6 +3,7 @@ package com.GeoMarket.Producto_Service.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.GeoMarket.Producto_Service.model.UbicacionProducto;
 import com.GeoMarket.Producto_Service.service.UbicacionProductoService;
 
+
+@CrossOrigin(origins="*")
 @RestController
 @RequestMapping("/api/ubicaciones")
 public class UbicacionProductoController {
@@ -41,7 +44,7 @@ public class UbicacionProductoController {
     }
 
     // OBTENER POR ID
-    @GetMapping("/{id}")
+    @GetMapping("/obtener-producto/{id}")
     public UbicacionProducto obtenerPorId(@PathVariable Long id) {
         return service.obtenerPorId(id);
     }
@@ -53,6 +56,8 @@ public class UbicacionProductoController {
             @RequestBody UbicacionProducto datos) {
         return service.actualizar(id, datos);
     }
+
+
 
     // ELIMINAR
     @DeleteMapping("/eliminar/{id}")
@@ -87,7 +92,7 @@ public class UbicacionProductoController {
 
 
 
-
+//buscar
     @GetMapping("/pasillo")
     public List<UbicacionProducto> porPasillo(@RequestParam String pasillo) {
         return service.buscarPorPasillo(pasillo);
@@ -107,7 +112,7 @@ public class UbicacionProductoController {
 
 
 
-
+//verificacion
     @GetMapping("/existe/{id}")
     public Boolean existe(@PathVariable Long id) {
         return service.existePorId(id);
@@ -121,6 +126,8 @@ public class UbicacionProductoController {
         return service.contarUbicaciones();
     }
 
+
+    
     @GetMapping("/resumen")
     public String resumen() {
         return service.resumen();

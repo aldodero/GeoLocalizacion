@@ -1,8 +1,11 @@
 package com.GeoMarket.Producto_Service.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.GeoMarket.Producto_Service.model.Producto;
 import com.GeoMarket.Producto_Service.service.ProductoService;
 
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoController {
@@ -23,7 +28,29 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-   
+
+    @GetMapping("/completo")
+public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
+
+    List<Producto> productos = productoService.buscarPorNombre(nombre);
+
+    return productos.stream().map(p -> {
+
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("nombre", p.getNombreProducto()); 
+        result.put("codigo", p.getCodigoProducto()); 
+
+        // después conectas microservicio ubicación)
+        result.put("pasillo", 5);
+        result.put("ubicacion", "Bebidas");
+        result.put("x", 150);
+        result.put("y", 200);
+
+        return result;
+
+    }).toList();
+}
     
     // CREAR PRODUCTO
     @PostMapping("/crear")
@@ -31,6 +58,7 @@ public class ProductoController {
         return productoService.crearProducto(producto);
     }
 
+    
 
 
     // LISTAR TODOS LOS PRODUCTOS
