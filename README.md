@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # geomarket_app
 
 A new Flutter project.
@@ -15,3 +16,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# GeoLocalizaci-n
+Buscador de productos
+>>>>>>> efdd31291eec13968beec4a3d54d9882b4a19d19
