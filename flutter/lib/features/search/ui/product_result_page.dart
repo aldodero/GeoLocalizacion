@@ -1,23 +1,88 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../map/ui/map_page.dart';
-import '../../map/ui/map_real_page.dart';
+import '../../../service/favoritos_service.dart';
 
-class ProductResultPage extends StatelessWidget {
+class ProductResultPage extends StatefulWidget {
+  final int idProducto;
+  final int idLocal;
   final String nombre;
   final String codigo;
   final String ubicacion;
   final double productX;
   final double productY;
+  final String modo;
 
   const ProductResultPage({
     super.key,
+    required this.idProducto,
+    required this.idLocal,
     required this.nombre,
+    required this.modo,
     this.codigo = "7801234567890",
     this.ubicacion = "Pasillo 5 - Bebidas - B1-B11",
     this.productX = 150,
     this.productY = 200,
   });
+
+  @override
+  State<ProductResultPage> createState() => _ProductResultPageState();
+}
+
+class _ProductResultPageState extends State<ProductResultPage> {
+  final FavoritosService favoritosService = FavoritosService();
+  bool esFavorito = false;
+  bool cargando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    verificarFavorito();
+  }
+
+  Future<void> verificarFavorito() async {
+    final resultado = await favoritosService.esFavorito(widget.codigo);
+    setState(() {
+      esFavorito = resultado;
+      cargando = false;
+    });
+  }
+
+  Future<void> toggleFavorito() async {
+    if (esFavorito) {
+      // TODO: implementar eliminar favorito cuando el backend lo soporte
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Producto ya está en favoritos")),
+      );
+      return;
+    }
+
+    try {
+      await favoritosService.guardarFavorito({
+        "idUsuario" : 1,
+        "idLocal": widget.idLocal,
+        "idProducto": widget.idProducto,
+      });
+
+      setState(() => esFavorito = true);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Producto agregado a favoritos"),
+            backgroundColor: AppColors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error al agregar a favoritos")),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +118,7 @@ class ProductResultPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ÍCONO + NOMBRE
+                  // ÍCONO + NOMBRE + FAVORITO
                   Row(
                     children: [
                       Container(
@@ -72,10 +137,32 @@ class ProductResultPage extends StatelessWidget {
                       const SizedBox(width: 14),
                       Expanded(
                         child: Text(
-                          nombre,
+                          widget.nombre,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
+                      // ÍCONO FAVORITO
+                      cargando
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.orange,
+                              ),
+                            )
+                          : IconButton(
+                              onPressed: toggleFavorito,
+                              icon: Icon(
+                                esFavorito
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: AppColors.orange,
+                                size: 28,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
                     ],
                   ),
 
@@ -87,7 +174,7 @@ class ProductResultPage extends StatelessWidget {
                   _InfoRow(
                     icon: Icons.qr_code,
                     label: 'Código',
-                    value: codigo,
+                    value: widget.codigo,
                   ),
 
                   const SizedBox(height: 12),
@@ -96,7 +183,7 @@ class ProductResultPage extends StatelessWidget {
                   _InfoRow(
                     icon: Icons.location_on_outlined,
                     label: 'Ubicación',
-                    value: ubicacion,
+                    value: widget.ubicacion,
                   ),
                 ],
               ),
@@ -113,8 +200,8 @@ class ProductResultPage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                        builder: (context) => MapPage(
-                        productX: productX,
-                        productY: productY,
+                        productX: widget.productX,
+                        productY: widget.productY,
                         userX: 50,
                         userY: 300,
                       ),
@@ -136,8 +223,21 @@ class ProductResultPage extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.qr_code_scanner, size: 20),
-                label: const Text('Escanear otro'),
+                icon: Icon(
+                  widget.modo == "scanner"
+                      ? Icons.qr_code_scanner
+                      : widget.modo == "favoritos"
+                          ? Icons.star
+                          : Icons.search,
+                  size: 20,
+                ),
+                label: Text(
+                  widget.modo == "scanner"
+                      ? "Escanear otro producto"
+                      : widget.modo == "favoritos"
+                          ? "Volver a favoritos"
+                          : "Buscar otro producto",
+                ),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),

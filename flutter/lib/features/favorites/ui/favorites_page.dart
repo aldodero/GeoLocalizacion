@@ -1,22 +1,114 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../service/favoritos_service.dart';
+import '../../search/ui/product_result_page.dart';
 
-class FavoritesPage extends StatelessWidget {
-  const FavoritesPage({super.key});
+class FavoritesPage extends StatefulWidget {
+  final int idLocal;
+  const FavoritesPage({super.key, required this.idLocal});
 
-  // Simulated data — replace with real data source when available
-  static const List<Map<String, String>> _items = [
-    {
-      'nombre': 'Coca-Cola 1.5L',
-      'codigo': '7801234567890',
-      'ubicacion': 'Pasillo 5 · Bebidas · B1-B11',
-    },
-    {
-      'nombre': 'Pan molde',
-      'codigo': '1234567890123',
-      'ubicacion': 'Pasillo 2 · Panadería · A1-A3',
-    },
-  ];
+
+  @override
+  State<FavoritesPage> createState() => _FavoritesPageState();
+}
+
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  final FavoritosService favoritosService = FavoritosService();
+  List<dynamic> favoritos = [];
+  bool cargando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    cargarFavoritos();
+  }
+
+  Future<void> cargarFavoritos() async {
+    final data = await favoritosService.obtenerFavoritosPorLocal(
+      1,
+      widget.idLocal,
+    );
+
+    setState(() {
+      favoritos = data;
+      cargando = false;
+    });
+  }
+
+
+
+
+  Future<void> confirmarEliminar(int idUsuario, int idProducto, String nombreProducto) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text('¿Eliminar favorito?'),
+        content: Text(
+          '¿Deseas eliminar "$nombreProducto" de tus favoritos?',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: AppColors.mediumGrey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.orange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      await eliminarFavorito(idUsuario, idProducto);
+    }
+  }
+
+
+
+
+
+  Future<void> eliminarFavorito(int idUsuario, int idProducto) async {
+    try {
+      await favoritosService.eliminarFavorito(idUsuario, idProducto);
+
+      // Recargar lista completa desde el backend
+      await cargarFavoritos();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Favorito eliminado"),
+            backgroundColor: AppColors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error al eliminar favorito")),
+        );
+      }
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -26,24 +118,55 @@ class FavoritesPage extends StatelessWidget {
         title: const Text('Favoritos'),
         automaticallyImplyLeading: false,
       ),
-      body: _items.isEmpty ? _emptyState(context) : _list(context),
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : favoritos.isEmpty
+              ? _emptyState(context)
+              : _list(context),
     );
   }
 
   Widget _list(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _items.length,
+      itemCount: favoritos.length,
       itemBuilder: (context, index) {
-        final item = _items[index];
+        final item = favoritos[index];
         return _FavoriteCard(
-          nombre: item['nombre']!,
-          codigo: item['codigo']!,
-          ubicacion: item['ubicacion']!,
+          nombre: item["nombreProducto"] ?? "Sin nombre",
+          codigo: item["codigoProducto"] ?? "",
+          ubicacion: item["tipo"] ?? "",
+          onTap: () {
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductResultPage(
+                  idProducto: item["idProducto"] ?? 0,
+                  idLocal: widget.idLocal,
+                  modo: "favoritos",
+                  nombre: item["nombreProducto"] ?? "",
+                  codigo: item["codigoProducto"] ?? "",
+                  ubicacion: item["tipo"] ?? "",
+                  productX: (item["x"] ?? 150).toDouble(),
+                  productY: (item["y"] ?? 200).toDouble(),
+                ),
+              ),
+            );
+          },
+
+          onDelete: () {
+            confirmarEliminar(
+              item["idUsuario"] ?? 1,
+              item["idProducto"] ?? 0,
+              item["nombreProducto"] ?? "este producto",
+            );
+          },
         );
       },
     );
   }
+
 
   Widget _emptyState(BuildContext context) {
     return Center(
@@ -80,20 +203,27 @@ class FavoritesPage extends StatelessWidget {
   }
 }
 
+
 class _FavoriteCard extends StatelessWidget {
   final String nombre;
   final String codigo;
   final String ubicacion;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   const _FavoriteCard({
     required this.nombre,
     required this.codigo,
     required this.ubicacion,
+    required this.onTap,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -109,15 +239,18 @@ class _FavoriteCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ÍCONO ESTRELLA
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+          // ÍCONO ESTRELLA (CLICKEABLE)
+          GestureDetector(
+            onTap: onDelete,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.star, color: AppColors.orange, size: 22),
             ),
-            child: const Icon(Icons.star, color: AppColors.orange, size: 22),
           ),
           const SizedBox(width: 14),
 
@@ -135,7 +268,7 @@ class _FavoriteCard extends StatelessWidget {
 
           // BOTÓN MAPA
           OutlinedButton(
-            onPressed: () {},
+            onPressed: onTap,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.orange,
               side: const BorderSide(color: AppColors.orange),
@@ -148,10 +281,11 @@ class _FavoriteCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            child: const Text('Mapa'),
+            child: const Text('Ver'),
           ),
         ],
       ),
+    ),
     );
   }
 }

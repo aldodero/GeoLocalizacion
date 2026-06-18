@@ -3,7 +3,11 @@ import '../../../core/theme/app_theme.dart';
 import '../../../service/historial_service.dart';
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({super.key});
+  final int idLocal;
+
+  const HistoryPage({super.key,required this.idLocal});
+
+
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -21,14 +25,25 @@ class _HistoryPageState extends State<HistoryPage> {
     cargarHistorial();
   }
 
-  Future<void> cargarHistorial() async {
-    final data = await historialService.obtenerHistorial();
+ Future<void> cargarHistorial() async {
+  try {
+    final data = await historialService.obtenerHistorialPorLocal(
+      1,
+      widget.idLocal,
+    );
 
     setState(() {
       historial = data;
+    });
+  } catch (e) {
+    print("ERROR PAGE HISTORIAL: $e");
+  } finally {
+    setState(() {
       cargando = false;
     });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +54,11 @@ class _HistoryPageState extends State<HistoryPage> {
         automaticallyImplyLeading: false,
       ),
       body: cargando
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.orange,
+              ),
+            )
           : historial.isEmpty
               ? _emptyState(context)
               : _list(context),
@@ -57,7 +76,7 @@ class _HistoryPageState extends State<HistoryPage> {
           nombre: item["nombreProducto"] ?? "",
           codigo: item["codigoProducto"] ?? "",
           ubicacion: item["tipo"] ?? "",
-          hora: "Ahora", // 🔥 después lo conectamos con fecha real
+          hora: historial[index]["hora"].toString().substring(11, 16),
         );
       },
     );
@@ -72,13 +91,13 @@ class _HistoryPageState extends State<HistoryPage> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.black.withOpacity(0.06),
+              color: AppColors.orange.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
               Icons.history,
               size: 36,
-              color: AppColors.darkGrey,
+              color: AppColors.orange,
             ),
           ),
           const SizedBox(height: 16),
@@ -134,12 +153,12 @@ class _HistoryCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.black.withOpacity(0.06),
+              color: AppColors.orange.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.history,
-              color: AppColors.darkGrey,
+              color: AppColors.orange,
               size: 22,
             ),
           ),

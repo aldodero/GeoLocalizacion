@@ -5,8 +5,14 @@ import '../../../service/product_service.dart';
 import '../../../service/historial_service.dart';
 
 
+
+
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final int idLocal;
+  const SearchPage({super.key,required this.idLocal,});
+
+
+
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -19,8 +25,9 @@ class _SearchPageState extends State<SearchPage> {
 
   List<dynamic> productos = [];
   bool cargando = false;
-
-  // 🔥 BUSCAR EN BACKEND
+  
+  
+    // 🔥 BUSCAR EN BACKEND
   Future<void> buscarProductos(String query) async {
     if (query.trim().isEmpty) {
       setState(() => productos = []);
@@ -30,7 +37,7 @@ class _SearchPageState extends State<SearchPage> {
     setState(() => cargando = true);
 
     try {
-      final resultado = await service.buscarProductos(query);
+      final resultado = await service.buscarProductos(widget.idLocal,query);
       setState(() => productos = resultado);
     } catch (e) {
       print("ERROR BACKEND: $e");
@@ -139,41 +146,54 @@ class _SearchPageState extends State<SearchPage> {
                           itemBuilder: (context, index) {
                             final producto = productos[index];
                             return _ProductCard(
-                              nombre: producto["nombre"] ?? "Sin nombre",
-                              pasillo: producto["pasillo"]?.toString() ?? "-",
+                              nombre: producto["nombreProducto"] ?? "Sin nombre",
+                              pasillo: producto["stock"]?.toString() ?? "-",
                               ubicacion: producto["ubicacion"] ?? "",
 
-                              onTap: ()async{
-                                print(producto);
-                                await historialService.guardarHistorial({
-                                "nombreProducto": producto["nombre"],
-                                "codigoProducto": producto["codigo"],
-                                "tipo": producto["tipo"],
-                                "nombreLocal": producto["nombreLocal"],
-                              });
-                                  Navigator.push(
+                              onTap: () {
+                                print("CLICK PRODUCTO");
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ProductResultPage(
-                                      nombre: producto["nombre"] ?? "",
-                                      codigo: producto["codigo"] ?? "",
+                                      idProducto:producto["idProducto"],
+                                      idLocal: widget.idLocal,
+                                      modo: "search",
+                                      nombre: producto["nombreProducto"] ?? "",
+                                      codigo: producto["codigoProducto"] ?? "",
                                       ubicacion: producto["tipo"] ?? "",
                                       productX: (producto["x"] ?? 150).toDouble(),
                                       productY: (producto["y"] ?? 200).toDouble(),
                                     ),
                                   ),
                                 );
+                                //aca se guarda el historial una vez que se escanea el producto o se busca
+                                print(producto);
+                                historialService.guardarHistorial({
+                                  "idUsuario":1,
+                                  "idProducto": producto["idProducto"],
+                                  "idLocal": widget.idLocal,
+                                  "tipoBusqueda": "BUSQUEDA",
+                                  "nombreProducto": producto["nombreProducto"],
+                                  "codigoProducto": producto["codigoProducto"],
+                                  "tipo": producto["tipo"],
+                                  "nombreLocal": producto["nombreLocal"],
+                                  
+                                });
+
                               },
                             );
                           },
                       ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+
+
 
 class _SuggestionChip extends StatelessWidget {
   final String label;
@@ -205,11 +225,11 @@ class _SuggestionChip extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: AppColors.black,
               ),
-        ),
-      ),
-    );
-  }
-}
+            ),
+          ),
+        );
+      }
+    }
 
 class _ProductCard extends StatelessWidget {
   final String nombre;

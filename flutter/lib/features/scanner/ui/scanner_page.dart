@@ -3,9 +3,15 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../search/ui/product_result_page.dart';
 import 'manual_code_page.dart';
+import '../../../service/product_service.dart';
 
 class ScannerPage extends StatefulWidget {
-  const ScannerPage({super.key});
+  final int idLocal;
+
+  const ScannerPage({
+    super.key,
+    required this.idLocal,
+  });
 
   @override
   State<ScannerPage> createState() => _ScannerPageState();
@@ -15,6 +21,52 @@ class _ScannerPageState extends State<ScannerPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _scanAnimation;
+  final ProductService productService = ProductService();
+
+
+   Future<void> buscarProducto(String codigo) async {
+
+    try {
+
+      final producto =
+          await productService.buscarPorCodigo(
+        codigo,
+        widget.idLocal,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProductResultPage(
+            idProducto: producto["idProducto"],
+            idLocal: widget.idLocal,
+            modo: "scanner",
+            nombre: producto["nombreProducto"],
+            codigo: producto["codigoProducto"],
+            ubicacion: producto["ubicacion"],
+            productX: 150,
+            productY: 200,
+          ),
+        ),
+      );
+
+    } catch (e) {
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Producto no encontrado",
+          ),
+        ),
+      );
+    }
+  }
+
+
 
   @override
   void initState() {
@@ -57,21 +109,10 @@ class _ScannerPageState extends State<ScannerPage>
                   onDetect: (barcodeCapture) {
                     final List<Barcode> barcodes = barcodeCapture.barcodes;
                     if (barcodes.isEmpty) return;
-                    final String? code = barcodes.first.rawValue;
-                    if (code == null) return;
 
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductResultPage(
-                          nombre: "Producto escaneado",
-                          codigo: code,
-                          ubicacion: "Pasillo 5 - Bebidas",
-                          productX: 150,
-                          productY: 200,
-                        ),
-                      ),
-                    );
+                  final String? code = barcodes.first.rawValue;
+                    if (code == null) return;
+                    buscarProducto(code);
                   },
                 ),
 
@@ -165,7 +206,9 @@ class _ScannerPageState extends State<ScannerPage>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ManualCodePage(),
+                      builder: (context) => ManualCodePage(
+                        idLocal: widget.idLocal,
+                      ),
                     ),
                   );
                 },
