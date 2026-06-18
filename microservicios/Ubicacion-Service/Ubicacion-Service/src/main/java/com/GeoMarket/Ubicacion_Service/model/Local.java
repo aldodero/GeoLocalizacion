@@ -34,6 +34,7 @@ public class Local {
     private String direccionLocal;
     
 
+
     
     @Column(nullable= false)
     private Double latitud;
@@ -44,4 +45,6 @@ public class Local {
     @ManyToOne
     @JoinColumn(name="id_comuna")
     private Comuna comuna;
+
+    
 }

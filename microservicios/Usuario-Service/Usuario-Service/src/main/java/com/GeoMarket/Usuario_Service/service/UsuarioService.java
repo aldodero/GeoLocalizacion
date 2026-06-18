@@ -77,7 +77,6 @@ public class UsuarioService {
 
 
     //obtener user por id
-
     public Usuario obtenerPorId(Long id) {
         validarId(id);
         return usuarioRepository.findById(id)
@@ -134,6 +133,7 @@ public class UsuarioService {
         String token = jwtService.generarToken(usuario.getCorreo());
 
         return new LoginResponse(
+            usuario.getIdUsuario(),
                 token,
                 usuario.getCorreo(),
                 usuario.getTipoUsuario().getNombreTipoUsuario()

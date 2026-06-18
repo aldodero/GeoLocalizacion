@@ -12,8 +12,8 @@ import org.springframework.data.repository.query.Param;
 import com.GeoMarket.Historial_Service.model.Historial;
 
 public interface HistorialRepository extends  JpaRepository<Historial, Long> {
-
-
+    
+    List<Historial> findByIdUsuarioAndIdLocalOrderByHoraEscaneoDesc(Long idUsuario,Long idLocal);
 
 List<Historial> findByIdUsuario(Long idUsuario);
 
@@ -35,6 +35,7 @@ List<Historial> findTop10ByIdUsuarioOrderByFechaEscaneoDescHoraEscaneoDesc(Long 
 
 void deleteByFechaEscaneoBefore(LocalDate fecha);
 
+Long countByIdUsuarioAndIdLocal(Long idUsuario,Long idLocal);
 
 @Query("""
 SELECT h.idUsuario, COUNT(h) 

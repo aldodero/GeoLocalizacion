@@ -43,6 +43,9 @@ public class Reporte {
      @Column(nullable=false)
     private Long idUsuario;
 
+    @Column(nullable= false)
+    private long idLocal;
+    
     @ManyToOne
     @JoinColumn(name="id_tipo_reporte")
     private TipoReporte tipoReporte;

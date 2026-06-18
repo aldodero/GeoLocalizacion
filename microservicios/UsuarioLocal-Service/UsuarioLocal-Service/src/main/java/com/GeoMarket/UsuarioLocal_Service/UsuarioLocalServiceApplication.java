@@ -9,5 +9,7 @@ public class UsuarioLocalServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(UsuarioLocalServiceApplication.class, args);
 	}
-
 }
+
+
+

@@ -12,6 +12,7 @@ import com.GeoMarket.Reporte_Service.model.Reporte;
 import com.GeoMarket.Reporte_Service.model.TipoReporte;
 import com.GeoMarket.Reporte_Service.repository.ReporteRepository;
 import com.GeoMarket.Reporte_Service.repository.TipoReporteRepository;
+import com.GeoMarket.Reporte_Service.service.client.NotificacionClient;
 
 @Service
 public class ReporteService {
@@ -22,6 +23,8 @@ public class ReporteService {
     @Autowired
     private TipoReporteRepository tiporeporterepository;
 
+    @Autowired
+    private NotificacionClient notificacionclient;
 
 
     //VALIDACIONES//
@@ -37,9 +40,11 @@ public class ReporteService {
     }
 
 
+
+
     //TRABAJADOR//
     // CREAR REPORTE
-    public Reporte crearReporte(Long idUsuario, String nombre, String descripcion, Long idTipo) {
+    public Reporte crearReporte(Long idUsuario, Long idLocal, String nombre, String descripcion, Long idTipo,String prioridad) {
 
         validarId(idUsuario);
         validarTexto(nombre, "Nombre");
@@ -54,18 +59,36 @@ public class ReporteService {
         r.setFechaReporte(LocalDate.now());
         r.setHoraReporte(LocalDateTime.now());
         r.setEstadoReporte("PENDIENTE");
-        r.setPrioridad("MEDIA");
+        r.setPrioridad(prioridad.toUpperCase());
         r.setTipoReporte(tipo);
+        r.setIdLocal(idLocal);
 
-        return reporterepository.save(r);
+        Reporte guardado = reporterepository.save(r);
+        System.out.println("REPORTE GUARDADO: " + guardado.getIdReporte());
+        notificacionclient.crearNotificacion(
+        idUsuario,
+        idLocal,
+        "Reporte generado",
+        "Tu reporte ha sido creado con éxito",
+        5L
+        );
+        System.out.println("SOLICITUD DE NOTIFICACION ENVIADA");
+        return guardado;
     }
 
+    
 
 
     // OBTENER REPORTES DE USUARIO POR ID
     public List<Reporte> obtenerPorUsuario(Long idUsuario) {
         validarId(idUsuario);
         return reporterepository.findByIdUsuario(idUsuario);
+    }
+
+    //OBTENER REPORTES POR IDUSER AND ID LCOAL
+    public List<Reporte> ObtenerPorUsuarioYLocal(Long idUsuario,Long idLocal){
+        return reporterepository.findByIdUsuarioAndIdLocal(idUsuario, idLocal);
+
     }
 
 
@@ -86,6 +109,8 @@ public class ReporteService {
     }
 
 
+
+
     // CAMBIAR ESTADO POR ID REPORTE
     public Reporte cambiarEstado(Long idReporte, String nuevoEstado) {
 
@@ -99,6 +124,8 @@ public class ReporteService {
     }
 
 
+
+
     // CAMBIAR PRIORIDAD DE REPORTE POR ID REPORTE
     public Reporte cambiarPrioridad(Long idReporte, String prioridad) {
         validarId(idReporte);
@@ -109,6 +136,8 @@ public class ReporteService {
 
         return reporterepository.save(r);
     }
+
+
 
 
     // ELIMINAR REPORTE POR ID REPORTE
@@ -125,6 +154,8 @@ public class ReporteService {
 
 
 
+
+
     //FILTROS//
     //BUSCAR REPORTE POR ESTADO
     public List<Reporte> buscarPorEstado(String estado) {
@@ -132,11 +163,13 @@ public class ReporteService {
         return reporterepository.findByEstadoReporteIgnoreCase(estado);
     }
 
+
     //BUSCAR REPORTE POR TIPO REPORTE
     public List<Reporte> buscarPorTipo(Long idTipo) {
         validarId(idTipo);
         return reporterepository.findByTipoReporte_IdTipoReporte(idTipo);
     }
+
 
     //BUSCAR REPORTE POR FECHA
     public List<Reporte> buscarPorFecha(LocalDate fecha) {
@@ -146,7 +179,6 @@ public class ReporteService {
         return reporterepository.findByFechaReporte(fecha);
     }
 
-    
 
     //CONTADOR DE REPORETE POR ESTADO
     public Long contarPorEstado(String estado) {
@@ -161,7 +193,8 @@ public class ReporteService {
 
 
     
-    //RESUMEN GENERAL 
+
+    //RESUMEN GENERAL  ADMIN
     public String resumenGeneral() {
 
         Long pendientes = contarPorEstado("PENDIENTE");

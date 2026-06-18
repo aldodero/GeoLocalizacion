@@ -19,20 +19,22 @@ public class FavoritoService {
 
 
 
+
     //GUARDAR FAVORITO
-    public Favorito guardarFavorito(Long idUsuario, Long idProducto) {
+    public Favorito guardarFavorito(Long idUsuario, Long idProducto,Long idLocal) {
 
         if (idUsuario == null || idProducto == null) {
             throw new IllegalArgumentException("Datos inválidos");
         }
 
-        if (favoritorepository.existsByIdUsuarioAndIdProducto(idUsuario, idProducto)) {
+        if (favoritorepository.existsByIdUsuarioAndIdProductoAndIdLocal(idUsuario,idProducto,idLocal)) {
             throw new RuntimeException("El producto ya está en favoritos");
-        }
+}
 
         Favorito f = new Favorito();
         f.setIdUsuario(idUsuario);
         f.setIdProducto(idProducto);
+        f.setIdLocal(idLocal);
 
         return favoritorepository.save(f);
     }
@@ -42,16 +44,14 @@ public class FavoritoService {
 
 
     //OBTENER RESULTADOS DE FAVORITO
-    public List<Favorito> obtenerFavoritos(Long idUsuario) {
-
-        if (idUsuario == null) {
-            throw new IllegalArgumentException("Usuario inválido");
-        }
-
-        return favoritorepository.findByIdUsuario(idUsuario);
+    public List<Favorito> obtenerFavoritos() {
+        return favoritorepository.findAll();
     }
         
-
+    
+    public List<Favorito> obtenerFavoritosPorLocal(Long IdUsuario, Long IdLocal){
+        return favoritorepository.findByIdUsuarioAndIdLocal(IdUsuario, IdLocal);
+    }
 
 
     //ELIMINAR FAVORITO

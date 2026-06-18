@@ -39,4 +39,5 @@ public class Historial {
     //para mas a futuro usarlo para conectar con user and product
     private Long idUsuario;
     private Long idProducto;
+    private Long idLocal;
 }

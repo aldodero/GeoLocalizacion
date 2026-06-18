@@ -2,6 +2,8 @@ package com.GeoMarket.Producto_Service.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,17 +27,16 @@ public class TipoProducto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idTipoProducto;
-    
     @Column(nullable=false )
     private String nombreTipoProducto;
 
-
-    
+    //constructor ya que no tomaba daba un error sin el
     public void setIdTipoProducto(Long idTipoProducto) {
     this.idTipoProducto = idTipoProducto;
     }
 
     //relacion uno a muchos con tiporpdocuto
+    @JsonIgnore
     @OneToMany(mappedBy = "tipoProducto")
     private List<Producto> productos;
 }

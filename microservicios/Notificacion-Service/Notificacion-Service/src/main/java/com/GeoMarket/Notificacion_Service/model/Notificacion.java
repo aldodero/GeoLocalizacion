@@ -35,13 +35,17 @@ public class Notificacion {
     private LocalDateTime horaNotificacion;
     @Column(nullable= false)
     private String estadoNotificacion;
+    @Column(nullable= false)
+    private String titulo;
 
+    @Column(nullable=false, length = 2000)
+    private String descripcion;
 
     @Column(nullable=false)
     private Long idUsuario;
-
-
-    //relacion con tipo notificacion
+    @Column(nullable= false)
+    private Long idLocal;
+    
     @ManyToOne
     @JoinColumn(name="id_tipo_notificacion")
     private TipoNotificacion tipoNotificacion;

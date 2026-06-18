@@ -26,5 +26,7 @@ public interface ReporteRepository extends  JpaRepository<Reporte, Long> {
     Long countByEstadoReporteIgnoreCase(String estadoReporte);
     //contador de usuario
     Long countByIdUsuario(Long idUsuario);
+    //filtra los reportes del moudlo por id user and idLocal
+    List<Reporte> findByIdUsuarioAndIdLocal(Long idUsuario,Long idLocal);
 }
 

@@ -9,17 +9,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.GeoMarket.Reporte_Service.dto.CrearReporteRequest;
 import com.GeoMarket.Reporte_Service.model.Reporte;
 import com.GeoMarket.Reporte_Service.service.ReporteService;
+
 
 @RestController
 @RequestMapping("/api/reportes")
 public class ReporteController {
-
 
 
     @Autowired
@@ -27,14 +29,19 @@ public class ReporteController {
 
   
 
+//CREAR REPORTE
+  @PostMapping("/crear")
+  public Reporte crear(@RequestBody CrearReporteRequest request){
 
-    // CREAR REPORTE
-    @PostMapping("/crear")
-    public Reporte crear(@RequestParam Long idUsuario, @RequestParam String nombre, @RequestParam(required = false) String descripcion, @RequestParam Long idTipo) {
-
-        return reporteService.crearReporte(idUsuario, nombre, descripcion, idTipo);
-    }
-
+    return reporteService.crearReporte(
+        request.getIdUsuario(),
+        request.getIdLocal(),
+        request.getNombreReporte(),
+        request.getDescripcion(),
+        request.getIdTipo(),
+        request.getPrioridad()
+    );
+}
 
 
     // OBTENER REPORTES DE UN USUARIO
@@ -43,6 +50,10 @@ public class ReporteController {
         return reporteService.obtenerPorUsuario(idUsuario);
     }
 
+    @GetMapping("/usuario-local/{idUsuario}/{idLocal}")
+    public List<Reporte> obtenerPorUsuarioYLocal(@PathVariable Long idUsuario, @PathVariable Long idLocal){
+        return reporteService.ObtenerPorUsuarioYLocal(idUsuario, idLocal);
+    }
 
 
    

@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.GeoMarket.Producto_Service.dto.ProductoResponse;
 import com.GeoMarket.Producto_Service.model.Producto;
 import com.GeoMarket.Producto_Service.service.ProductoService;
+import com.GeoMarket.Producto_Service.service.client.UbicacionClient;
 
 
 @CrossOrigin(origins = "*")
@@ -28,29 +30,65 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
+    @Autowired
+    private UbicacionClient ubicacionClient;
 
-    @GetMapping("/completo")
+
+
+
+
+
+
+
+@GetMapping("/completo")
 public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
     List<Producto> productos = productoService.buscarPorNombre(nombre);
 
+    Object ubicacionesTemp;
+
+    try {
+        ubicacionesTemp = ubicacionClient.obtenerLocales();
+    } catch (Exception e) {
+        System.out.println("Error obteniendo ubicaciones: " + e.getMessage());
+        ubicacionesTemp = null;
+    }
+
+    final Object ubicaciones = ubicacionesTemp;
+
     return productos.stream().map(p -> {
 
         Map<String, Object> result = new HashMap<>();
+        result.put("idProducto",p.getIdProducto());
+        result.put("nombre", p.getNombreProducto());
+        result.put("codigo", p.getCodigoProducto());
+        result.put("tipo", p.getTipoProducto().getNombreTipoProducto());
 
-        result.put("nombre", p.getNombreProducto()); 
-        result.put("codigo", p.getCodigoProducto()); 
+        if (ubicaciones != null) {
 
-        // después conectas microservicio ubicación)
-        result.put("pasillo", 5);
-        result.put("ubicacion", "Bebidas");
-        result.put("x", 150);
-        result.put("y", 200);
+            List<?> lista = (List<?>) ubicaciones;
+
+            if (!lista.isEmpty()) {
+                Map<?, ?> local = (Map<?, ?>) lista.get(0);
+
+                result.put("nombreLocal", local.get("nombreLocal"));
+                result.put("latitud", local.get("latitud"));
+                result.put("longitud", local.get("longitud"));
+            }
+        }
 
         return result;
 
     }).toList();
 }
+
+
+
+
+
+
+
+
     
     // CREAR PRODUCTO
     @PostMapping("/crear")
@@ -70,7 +108,7 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
 
 
-    // ACTUALIZAR PRODUCTO
+    // ACTUALIZAR PRODUCTO POR ID
     @PutMapping("/actualizar/{id}")
     public Producto actualizar(@PathVariable Long id, @RequestBody Producto producto) {
         return productoService.actualizarProducto(id, producto);
@@ -78,7 +116,7 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
 
 
-    // ELIMINAR PRODUCTO
+    // ELIMINAR PRODUCTO POR ID
     @DeleteMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Long id) {
         productoService.eliminarProducto(id);
@@ -97,7 +135,7 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
 
 
-    // BUSCAR POR CÓDIGO
+    // BUSCAR PRODUCTO POR CÓDIGO
     @GetMapping("/buscar-codigo")
     public Producto buscarPorCodigo(@RequestParam String codigo) {
         return productoService.buscarPorCodigo(codigo);
@@ -105,7 +143,7 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
 
 
-    // BUSCAR POR NOMBRE
+    // BUSCAR PRODUCTO POR NOMBRE
     @GetMapping("/buscar-nombre")
     public List<Producto> buscarPorNombre(@RequestParam String nombre) {
         return productoService.buscarPorNombre(nombre);
@@ -115,7 +153,7 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
 
 
-    // BUSCAR POR TIPO
+    // BUSCAR PRODUCTO POR TIPO
     @GetMapping("/tipo/{idTipo}")
     public List<Producto> buscarPorTipo(@PathVariable Long idTipo) {
         return productoService.buscarPorTipo(idTipo);
@@ -128,6 +166,21 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
     public List<Producto> sinStock() {
         return productoService.productosSinStock();
     }
+
+    //obtener producto por id
+    @GetMapping("/Obtener/{idProducto}")
+    public ProductoResponse obtenerPorId(@PathVariable Long idProducto) {
+    Producto p = productoService.obtenerPorId(idProducto);
+    return new ProductoResponse(
+            p.getIdProducto(),
+            p.getNombreProducto(),
+            p.getCodigoProducto(),
+            p.getTipoProducto().getNombreTipoProducto(),
+            p.getMarca().getNombreMarca(),
+            p.getCategoria().getNombreCategoria(),
+            p.getPrecio()
+    );
+}
 
 
 
@@ -159,8 +212,8 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
 
 
     // EXISTE POR CÓDIGO
-    @GetMapping("/existe-codigo")
-    public Boolean existePorCodigo(@RequestParam String codigo) {
+    @GetMapping("/existe-codigo/{codigo}")
+    public Boolean existePorCodigo(@PathVariable String codigo) {
         return productoService.existePorCodigo(codigo);
     }
 
@@ -195,6 +248,8 @@ public List<Map<String, Object>> buscarCompleto(@RequestParam String nombre) {
     // RESUMEN GENERAL
     @GetMapping("/resumen")
     public String resumen() {
+        
         return productoService.resumenGeneral();
     }
 }
+

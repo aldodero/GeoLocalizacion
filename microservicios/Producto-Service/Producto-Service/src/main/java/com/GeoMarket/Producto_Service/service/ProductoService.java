@@ -48,7 +48,19 @@ public class ProductoService {
         }
     }
 
+    
+    //OBTENER POR ID PRODUCTO
+    public Producto obtenerPorId(Long id) {
 
+    if (id == null || id <= 0) {
+        throw new IllegalArgumentException("ID de producto inválido");
+    }
+
+    return productorepository.findById(id)
+            .orElseThrow(() ->
+                new RuntimeException("Producto no encontrado con ID: " + id)
+            );
+}
 
 
 
@@ -137,7 +149,7 @@ public class ProductoService {
     }
 
 
-
+  
 
     
     //TRABAJADOR ESCANEA PRODUCTO
@@ -152,14 +164,14 @@ public class ProductoService {
 
 
 
-    // BUSCAR POR CÓDIGO
+    // BUSCAR PRODUCTO POR CÓDIGO
     public Producto buscarPorCodigo(String codigo) {
         return escanearProducto(codigo);
     }
 
 
 
-    // BUSCAR POR NOMBRE
+    // BUSCAR PRODUCTO  POR NOMBRE
     public List<Producto> buscarPorNombre(String nombre) {
         validarTexto(nombre, "Nombre");
         return productorepository.findByNombreProductoContainingIgnoreCase(nombre);
@@ -219,8 +231,7 @@ public class ProductoService {
         return productorepository.existsByCodigoProducto(codigo);
     }
 
-   
-
+    
 
 
     //CONTEOS

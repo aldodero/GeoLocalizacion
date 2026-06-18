@@ -24,11 +24,12 @@ public class Favorito {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long idFavorito;
 
+
+    //id externos
     @Column(nullable=false)
     private Long idUsuario;
-
-    
     @Column(nullable=false)
     private Long idProducto;
-    
+    @Column(nullable=false)
+    private  Long idLocal;    
 }

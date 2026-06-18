@@ -7,22 +7,31 @@ import org.springframework.stereotype.Service;
 
 import com.GeoMarket.UsuarioLocal_Service.model.UsuarioLocal;
 import com.GeoMarket.UsuarioLocal_Service.repository.UsuarioLocalRepository;
+import com.GeoMarket.UsuarioLocal_Service.service.client.NotificationClient;
 
 
 @Service
 public class UsuarioLocalService {
 
-    private final UsuarioLocalRepository repository;
+    
+    private final UsuarioLocalRepository usuariolocalrepository;
 
-    public UsuarioLocalService(UsuarioLocalRepository repository){
-        this.repository = repository;
-    }
+    private final NotificationClient notificationclient;
 
+
+    public UsuarioLocalService(
+    UsuarioLocalRepository repository,
+    NotificationClient notificationClient
+){
+    this.usuariolocalrepository = repository;
+    this.notificationclient =
+            notificationClient;
+}
 
     // CREAR ASIGNACION
     public UsuarioLocal crearAsignacion(UsuarioLocal asignacion){
 
-    if(repository.existsByIdUsuarioAndIdLocal(
+    if(usuariolocalrepository.existsByIdUsuarioAndIdLocal(
         asignacion.getIdUsuario(),
         asignacion.getIdLocal())){
         throw new RuntimeException("Ya existe esta asignación");
@@ -30,34 +39,56 @@ public class UsuarioLocalService {
     asignacion.setFechaAsignacion(LocalDate.now());
     asignacion.setEstado("ACTIVO"); 
 
-    return repository.save(asignacion);
+    UsuarioLocal guardado =
+        usuariolocalrepository.save(asignacion);
+
+    // NOTIFICACION NUEVO LOCAL
+    notificationclient.crearNotificacion(
+
+            asignacion.getIdUsuario(),
+
+            "Se te asignó un nuevo local",
+
+            3L
+    );
+
+    return guardado;
 }
 
 
 
     // LISTAR TODAS
     public List<UsuarioLocal> listar(){
-        return repository.findAll();
+        return usuariolocalrepository.findAll();
     }
 
 
 
     // POR USUARIO
     public List<UsuarioLocal> obtenerPorUsuario(Long usuarioId){
-        return repository.findByIdUsuario(usuarioId);
+        return usuariolocalrepository.findByIdUsuario(usuarioId);
     }
 
 
 
     // POR LOCAL
     public List<UsuarioLocal> obtenerPorLocal(Long localId){
-        return repository.findByIdLocal(localId);
+        return usuariolocalrepository.findByIdLocal(localId);
     }
 
 
 
     // ELIMINAR
-    public void eliminar(Long id){
-        repository.deleteById(id);
+    public String eliminar(Long id){
+        if(id== null || id<=0){
+            return "id invalido";
+        }
+        if(!usuariolocalrepository.existsById(id)){
+            return "id no existe";
+        }
+        usuariolocalrepository.deleteById(id);
+        return "usuario local eliminado con exito";
     }
+
+  
 }

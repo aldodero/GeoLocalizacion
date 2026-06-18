@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.GeoMarket.Historial_Service.model.Historial;
 import com.GeoMarket.Historial_Service.repository.HistorialRepository;
+import com.GeoMarket.Historial_Service.service.client.NotificationClient;
 
 
 @Service
@@ -21,7 +22,8 @@ public class HistorialService {
     @Autowired
     private HistorialRepository historialrepository;
     
- 
+    @Autowired
+    private NotificationClient notificationClient;
 
    //VALIDACIONES///
     private void validarIdUsuario(Long idUsuario) {
@@ -44,8 +46,25 @@ public class HistorialService {
 
 
 
+
+    //historial por user y local
+    public List<Historial> listarPorUsuarioYLocal(Long idUsuario,Long idLocal) {
+    validarIdUsuario(idUsuario);
+    
+    if (idLocal == null || idLocal <= 0) {
+        throw new IllegalArgumentException(
+                "idLocal inválido"
+        );
+    }
+    return historialrepository.findByIdUsuarioAndIdLocalOrderByHoraEscaneoDesc(idUsuario,idLocal);
+}
+
+
+
+
+
     //GUARDAR ESCANEO//
-    public Historial guardarEscaneo(Long idUsuario, Long idProducto, String tipoBusqueda) {
+    public Historial guardarEscaneo(Long idUsuario, Long idProducto, Long idLocal,String tipoBusqueda) {
 
         validarIdUsuario(idUsuario);
         validarIdProducto(idProducto);
@@ -58,12 +77,68 @@ public class HistorialService {
         Historial h = new Historial();
         h.setIdUsuario(idUsuario);
         h.setIdProducto(idProducto);
+        h.setIdLocal(idLocal);
         h.setTipoBusqueda(tipoBusqueda);
         h.setFechaEscaneo(LocalDate.now());
         h.setHoraEscaneo(LocalDateTime.now());
+        
 
-        return historialrepository.save(h);
+        Historial guardado =
+        historialrepository.save(h);
+
+            Long totalEscaneos = 
+            contarEscaneosPorUsuarioYLocal(idUsuario, idLocal);
+
+            // SMART MILESTONES
+            if (totalEscaneos == 1) {
+
+                notificationClient.crearNotificacion(
+                        idUsuario,
+                        idLocal,
+                        "primer escaneo",
+                        "Has escaneado tu primer producto,sigue asi!",
+                        2L
+                );
+            }
+
+            if (totalEscaneos == 10) {
+
+                notificationClient.crearNotificacion(
+                        idUsuario,
+                        idLocal,
+                        "escaneo frecuente",
+                        "Ya llevas 10 productos escaneados!",
+                        2L
+                );
+            }
+
+            if (totalEscaneos == 50) {
+
+                notificationClient.crearNotificacion(
+                        idUsuario,
+                        idLocal,
+                        "meta alcanzada",
+                        "Increíble, ya alcanzaste 50 escaneos!",
+                        2L
+                );
+            }
+
+            if (totalEscaneos == 100) {
+
+                notificationClient.crearNotificacion(
+                        idUsuario,
+                        idLocal,
+                        "meta alcanzada",
+                        "Wow!, llevas 100 productos escaneados",
+                        2L
+                );
+            }
+
+            return guardado;
     }
+
+
+
 
   
 
@@ -153,10 +228,19 @@ public class HistorialService {
         return historialrepository.findByIdUsuario(idUsuario);
     }
 
+
+    //contar escaneo por user 
     public Long contarEscaneosPorUsuario(Long idUsuario) {
         validarIdUsuario(idUsuario);
         return historialrepository.countByIdUsuario(idUsuario);
     }
+    //contar escaneo por local y usuario filtra el escaneo por local y user 
+    public Long contarEscaneosPorUsuarioYLocal(Long idUsuario,Long idLocal) {
+        validarIdUsuario(idUsuario);
+    return historialrepository.countByIdUsuarioAndIdLocal(idUsuario,idLocal);
+}
+
+
 
     public List<Object[]> rankingTrabajadores() {
         return historialrepository.rankingTrabajadores();

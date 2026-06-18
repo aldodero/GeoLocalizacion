@@ -18,6 +18,7 @@ import lombok.Setter;
 
 
 
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +26,8 @@ import lombok.Setter;
 @Entity
 @Table(name="producto")
 public class Producto {
+
+
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -50,15 +53,23 @@ public class Producto {
 
 
 
+
+
+
+
+
     //relacion muchos a uno con tipo producto
     @ManyToOne
     @JoinColumn(name= "tipo_id")
     private TipoProducto tipoProducto;
 
-
-    //relacion de muchos a uno con ubicacion producto
     @ManyToOne
-    @JoinColumn(name= "ubicacion_id")
-    private UbicacionProducto ubicacionProducto;
+    @JoinColumn(name="marca_id")
+    private Marca marca;
+
+    //relacion muchos a uno con categoria
+    @ManyToOne
+    @JoinColumn(name="categoria_id")
+    private Categoria categoria;
     
 }

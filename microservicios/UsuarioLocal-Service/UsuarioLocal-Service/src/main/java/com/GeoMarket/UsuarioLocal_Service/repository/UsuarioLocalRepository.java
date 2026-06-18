@@ -15,4 +15,6 @@ public interface UsuarioLocalRepository extends JpaRepository<UsuarioLocal, Long
     List<UsuarioLocal> findByIdLocal(Long idLocal);
 
     boolean existsByIdUsuarioAndIdLocal(Long idUsuario, Long idLocal);
+
+   
 }

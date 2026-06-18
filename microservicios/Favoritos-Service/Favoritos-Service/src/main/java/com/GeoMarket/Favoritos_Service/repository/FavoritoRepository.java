@@ -13,12 +13,19 @@ public interface FavoritoRepository extends JpaRepository<Favorito, Long> {
 
     
     
-    List<Favorito> findByIdUsuario(Long idUsuario);
+  
 
     Optional<Favorito> findByIdUsuarioAndIdProducto(Long idUsuario, Long idProducto);
 
-    boolean existsByIdUsuarioAndIdProducto(Long idUsuario, Long idProducto);
 
     void deleteByIdUsuarioAndIdProducto(Long idUsuario, Long idProducto);
+
+    //flitro para filtrar favoritos por local y user
+    //trea listado favoritos por user and local
+    List<Favorito>findByIdUsuarioAndIdLocal(Long idUsuario, Long idLocal);
+
+    boolean existsByIdUsuarioAndIdProducto(Long idUsuario, Long idProducto);
+    
+    boolean existsByIdUsuarioAndIdProductoAndIdLocal(Long idUsuario ,Long idProducto, Long idLocal);
 }
 

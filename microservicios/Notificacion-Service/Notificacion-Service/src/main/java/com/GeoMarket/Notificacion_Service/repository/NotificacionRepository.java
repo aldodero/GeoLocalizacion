@@ -1,8 +1,10 @@
 package com.GeoMarket.Notificacion_Service.repository;
 
 import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
 import com.GeoMarket.Notificacion_Service.model.Notificacion;
 
 
@@ -17,6 +19,11 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
 
     //BUSCAR//VER EL ESTADO DE LA NOTIFICACION POR ID DE USUARIO
     List<Notificacion> findByIdUsuarioAndEstadoNotificacion(Long idUsuario, String estado);
+    
+    Long countByIdUsuarioAndEstadoNotificacion(Long idUsuario, String estado);
 
+    List<Notificacion> findByIdUsuarioAndIdLocalOrderByFechaNotificacionDesc(Long idUsuario,Long idLocal);
+
+    Long countByIdUsuarioAndIdLocalAndEstadoNotificacion(Long idUsuario,Long idLocal,String estado);
 }
     

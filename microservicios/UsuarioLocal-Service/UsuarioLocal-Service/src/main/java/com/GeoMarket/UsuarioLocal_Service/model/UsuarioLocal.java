@@ -4,6 +4,7 @@ package com.GeoMarket.UsuarioLocal_Service.model;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,8 +26,13 @@ public class UsuarioLocal {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-    private Long idUsuario;
-    private Long idLocal;
+    @Column(nullable= false)
     private LocalDate fechaAsignacion;
+     @Column(nullable= false)
     private String estado;
+
+    //ID DE LOCAL ID DE USUARIO
+    private Long idUsuario;
+     @Column(nullable= false)
+    private Long idLocal;
 }

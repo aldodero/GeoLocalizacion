@@ -88,13 +88,13 @@ public class LocalController {
     // ==============================
 
     //  VERIFICAR SI EXISTE LOCAL POR ID 
-    @GetMapping("/existe/id/{id}")
+    @GetMapping("/existe-id/{id}")
     public Boolean existePorId(@PathVariable Long id) {
         return localservice.existePorId(id);
     }
 
     //VERIFICAR SI  EXISTE LOCAL POR CÓDIGO
-    @GetMapping("/existe/codigo/{codigo}")
+    @GetMapping("/existe-codigo/{codigo}")
     public Boolean existePorCodigo(@PathVariable String codigo) {
         return localservice.existePorCodigo(codigo);
     }

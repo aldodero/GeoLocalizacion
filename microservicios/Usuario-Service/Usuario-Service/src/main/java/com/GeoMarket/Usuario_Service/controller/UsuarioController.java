@@ -3,6 +3,7 @@ package com.GeoMarket.Usuario_Service.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,8 @@ import com.GeoMarket.Usuario_Service.dto.LoginResponse;
 import com.GeoMarket.Usuario_Service.model.Usuario;
 import com.GeoMarket.Usuario_Service.service.UsuarioService;
 
+
+@CrossOrigin(origins="*")
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
